@@ -146,5 +146,7 @@ def editar_interface():
 def home():
     return render_template("listar.html")
 
-if __name__ == "__main__":
-    app.run()
+# Deixe vazio, ou só:
+# if __name__ == "__main__":
+#     app.run(debug=True)
+

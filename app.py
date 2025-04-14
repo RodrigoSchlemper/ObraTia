@@ -21,16 +21,15 @@ def adicionar_custo():
 
     # ⚠️ Validação básica de campos obrigatórios
     if not tipo or not descricao or not valor or not data_compra:
-    erro = "Preencha todos os campos obrigatórios."
-    return render_template("editar.html", erro=erro)
+        erro = "Preencha todos os campos obrigatórios."
+        return render_template("editar.html", erro=erro)
 
     # ⚠️ Validação do campo numérico
     try:
         valor = float(valor)
     except ValueError:
         erro = "O campo 'valor' precisa ser um número válido."
-return render_template("editar.html", erro=erro)
-
+        return render_template("editar.html", erro=erro)
 
     anexo = request.files.get("anexo")
     nome_arquivo = anexo.filename if anexo else None
@@ -49,7 +48,6 @@ return render_template("editar.html", erro=erro)
     conn.close()
 
     return render_template("listar.html")
-
 
 @app.route("/custos", methods=["GET"])
 def listar_custos():
@@ -159,8 +157,3 @@ def editar_interface():
 @app.route("/")
 def home():
     return render_template("listar.html")
-
-# Deixe vazio, ou só:
-# if __name__ == "__main__":
-#     app.run(debug=True)
-

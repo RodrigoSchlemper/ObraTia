@@ -1,0 +1,280 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Custos da Obra</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f7f7f7;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    #filtro-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      align-items: center;
+      background-color: #fff;
+      padding: 15px;
+      margin: 20px auto 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      max-width: 1100px;
+    }
+
+    #filtro-form label {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 150px;
+    }
+
+    #filtro-form button, .novo-custo, .exportar-btn {
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1px solid;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+      margin: 5px;
+    }
+
+    .novo-custo {
+      border-color: #28a745;
+      background-color: transparent;
+      color: #28a745;
+    }
+
+    .novo-custo:hover {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .exportar-btn {
+      background-color: white;
+    }
+
+    .exportar-excel {
+      border-color: #007bff;
+      color: #007bff;
+    }
+
+    .exportar-excel:hover {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .exportar-pdf {
+      border-color: #dc3545;
+      color: #dc3545;
+    }
+
+    .exportar-pdf:hover {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    tfoot td {
+      font-weight: bold;
+      background-color: #fafafa;
+    }
+
+    .acao-link {
+      margin-right: 10px;
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .acao-link:hover {
+      text-decoration: underline;
+    }
+
+    .excluir-link {
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <h2>Custos Cadastrados</h2>
+
+  <form id="filtro-form">
+    <label>Tipo:
+      <select id="tipo">
+        <option value="">Todos</option>
+        <option value="Material">Material</option>
+        <option value="Mão de obra">Mão de Obra</option>
+        <option value="Construtora">Construtora</option>
+      </select>
+    </label>
+    <label>De:
+      <input type="date" id="data_inicio">
+    </label>
+    <label>Até:
+      <input type="date" id="data_fim">
+    </label>
+    <button type="submit">🔍 Filtrar</button>
+    <button type="button" onclick="resetarFiltro()">✖ Limpar</button>
+  </form>
+
+  <div style="text-align:center; margin: 10px 0 20px;">
+    <a href="/editar" class="novo-custo">+ Novo Custo</a>
+    <button onclick="exportarExcel()" class="exportar-btn exportar-excel">📤 Exportar Excel</button>
+    <button onclick="exportarPDF()" class="exportar-btn exportar-pdf">📄 Exportar PDF</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Descrição</th>
+        <th>Valor (R$)</th>
+        <th>Data</th>
+        <th>Observação</th>
+        <th>Anexo</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="corpo-tabela"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">Total</td>
+        <td id="total"></td>
+        <td colspan="4"></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    let dadosOriginais = [];
+
+    async function carregarDados() {
+      const res = await fetch("/custos");
+      const data = await res.json();
+      dadosOriginais = data;
+      aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+      const tipo = document.getElementById("tipo").value;
+      const dataInicio = document.getElementById("data_inicio").value;
+      const dataFim = document.getElementById("data_fim").value;
+
+      let dataFiltrada = [...dadosOriginais];
+
+      if (tipo) {
+        dataFiltrada = dataFiltrada.filter(item => item.tipo === tipo);
+      }
+      if (dataInicio) {
+        dataFiltrada = dataFiltrada.filter(item => new Date(item.data_compra) >= new Date(dataInicio));
+      }
+      if (dataFim) {
+        dataFiltrada = dataFiltrada.filter(item => new Date(item.data_compra) <= new Date(dataFim));
+      }
+
+      const tbody = document.getElementById("corpo-tabela");
+      const totalEl = document.getElementById("total");
+      tbody.innerHTML = "";
+      let total = 0;
+
+      dataFiltrada.forEach(custo => {
+        const tr = document.createElement("tr");
+        total += custo.valor;
+
+        tr.innerHTML = `
+          <td>${custo.tipo}</td>
+          <td>${custo.descricao}</td>
+          <td>R$ ${custo.valor.toFixed(2)}</td>
+          <td>${custo.data_compra}</td>
+          <td>${custo.observacao || ''}</td>
+          <td>${custo.nome_arquivo ? `<a href="/anexo/${custo.id}" target="_blank">📎 ${custo.nome_arquivo}</a>` : ''}</td>
+          <td>
+            <a class="acao-link" href="/editar?id=${custo.id}">✏️ Editar</a>
+            <a class="acao-link excluir-link" href="#" onclick="excluirCusto(${custo.id})">🗑️ Excluir</a>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      totalEl.textContent = "R$ " + total.toFixed(2);
+    }
+
+    function resetarFiltro() {
+      document.getElementById("filtro-form").reset();
+      aplicarFiltros();
+    }
+
+    function excluirCusto(id) {
+      if (!confirm("Tem certeza que deseja excluir este custo?")) return;
+      fetch(`/custos/${id}`, { method: "DELETE" })
+        .then(() => carregarDados());
+    }
+
+    function exportarExcel() {
+      const tabela = document.querySelector("table");
+      const workbook = XLSX.utils.table_to_book(tabela, { sheet: "Custos" });
+      XLSX.writeFile(workbook, "custos_obra.xlsx");
+    }
+
+    function exportarPDF() {
+      const tabela = document.querySelector("table");
+      const opt = {
+        margin: 0.3,
+        filename: 'custos_obra.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+      };
+      html2pdf().set(opt).from(tabela).save();
+    }
+
+    document.getElementById("filtro-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      aplicarFiltros();
+    });
+
+    carregarDados();
+  </script>
+
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+  }
+</script>
+</body>
+</html>

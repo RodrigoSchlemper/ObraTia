@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title id="titulo-pagina">Novo Custo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f8f8f8;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h2 id="form-titulo">Cadastrar Novo Custo</h2>
+
+  <form id="form" onsubmit="salvar(event)" enctype="multipart/form-data">
+    <input type="hidden" id="id">
+
+    <label for="tipo">Tipo:</label>
+    <select id="tipo">
+      <option value="Material">Material</option>
+      <option value="Mão de obra">Mão de Obra</option>
+      <option value="Construtora">Construtora</option>
+    </select>
+
+    <label for="descricao">Descrição:</label>
+    <input type="text" id="descricao" required>
+
+    <label for="valor">Valor:</label>
+    <input type="number" step="0.01" id="valor" required>
+
+    <label for="data">Data da Compra:</label>
+    <input type="date" id="data" required>
+
+    <label for="obs">Observação:</label>
+    <input type="text" id="obs">
+    
+    <label for="anexo">Anexo:</label>
+    <input type="file" id="anexo" name="anexo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+    <div id="anexo-atual" style="margin-top: 10px;"></div>
+    <label>
+  <input type="checkbox" id="remover-anexo">
+  Remover anexo existente
+</label>
+
+    <button type="submit">Salvar</button>
+  </form>
+
+  <a href="/listar">← Voltar para listagem</a>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const API = "http://localhost:5000/custos";
+
+    if (id) {
+      // Atualiza título para modo edição
+      document.getElementById("form-titulo").textContent = "Editar Custo";
+      document.title = "Editar Custo";
+
+      fetch(API)
+        .then(res => res.json())
+        .then(data => {
+          const custo = data.find(c => c.id == id);
+          if (!custo) return;
+
+          document.getElementById('id').value = custo.id;
+          document.getElementById('tipo').value = custo.tipo;
+          document.getElementById('descricao').value = custo.descricao;
+          document.getElementById('valor').value = custo.valor;
+          document.getElementById('data').value = custo.data_compra;
+          document.getElementById('obs').value = custo.observacao || '';
+          if (custo.nome_arquivo) {
+		document.getElementById('anexo-atual').innerHTML =
+		    `<strong>Anexo atual:</strong> <a href="/anexo/${custo.id}" target="_blank">${custo.nome_arquivo}</a>`;
+}
+
+        });
+    }
+
+    function salvar(event) {
+  event.preventDefault();
+  const isEdicao = !!id;
+
+  const formData = new FormData();
+  formData.append("tipo", document.getElementById("tipo").value);
+  formData.append("descricao", document.getElementById("descricao").value);
+  formData.append("valor", document.getElementById("valor").value);
+  formData.append("data_compra", document.getElementById("data").value);
+  formData.append("observacao", document.getElementById("obs").value);
+  formData.append("remover_anexo", document.getElementById("remover-anexo").checked);
+
+  const anexo = document.getElementById("anexo").files[0];
+  if (anexo) {
+    formData.append("anexo", anexo);
+  }
+
+  const url = isEdicao ? `${API}/${id}` : API;
+  const method = isEdicao ? "PUT" : "POST";
+
+  fetch(url, {
+    method: method,
+    body: formData
+  }).then(() => {
+    window.location.href = "/listar";
+  });
+}
+
+
+  </script>
+</body>
+</html>

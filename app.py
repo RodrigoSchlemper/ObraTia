@@ -146,22 +146,6 @@ def editar_interface():
 def home():
     return render_template("listar.html")
 
-@app.route('/manifest.json')
-def manifest():
-    return send_from_directory('.', 'manifest.json')
-
-@app.route('/service-worker.js')
-def service_worker():
-    return send_from_directory('.', 'service-worker.js')
-
-@app.route('/icon-192.png')
-def icon192():
-    return send_from_directory('.', 'icon-192.png')
-
-@app.route('/icon-512.png')
-def icon512():
-    return send_from_directory('.', 'icon-512.png')
-
 # Deixe vazio, ou só:
 # if __name__ == "__main__":
 #     app.run(debug=True)

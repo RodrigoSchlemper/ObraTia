@@ -3,9 +3,9 @@ self.addEventListener('install', event => {
     caches.open('obra-cache').then(cache => {
       return cache.addAll([
         '/listar.html',
-        '/manifest.json',
-        '/icon-192.png',
-        '/icon-512.png'
+        '/static/manifest.json',
+        '/static/icon-192.png',
+        '/static/icon-512.png'
       ]);
     })
   );

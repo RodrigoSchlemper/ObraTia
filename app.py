@@ -19,6 +19,16 @@ def adicionar_custo():
     data_compra = request.form.get("data_compra")
     observacao = request.form.get("observacao")
 
+    # ⚠️ Validação básica de campos obrigatórios
+    if not tipo or not descricao or not valor or not data_compra:
+        return jsonify({"erro": "Preencha todos os campos obrigatórios."}), 400
+
+    # ⚠️ Validação do campo numérico
+    try:
+        valor = float(valor)
+    except ValueError:
+        return jsonify({"erro": "O campo 'valor' precisa ser um número válido."}), 400
+
     anexo = request.files.get("anexo")
     nome_arquivo = anexo.filename if anexo else None
     conteudo_arquivo = anexo.read() if anexo else None
@@ -36,6 +46,7 @@ def adicionar_custo():
     conn.close()
 
     return render_template("listar.html")
+
 
 @app.route("/custos", methods=["GET"])
 def listar_custos():

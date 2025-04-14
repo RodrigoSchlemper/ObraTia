@@ -142,5 +142,9 @@ def listar_interface():
 def editar_interface():
     return render_template("editar.html")
 
+@app.route("/")
+def home():
+    return render_template("listar.html")
+
 if __name__ == "__main__":
     app.run()

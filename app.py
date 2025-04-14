@@ -35,7 +35,7 @@ def adicionar_custo():
     cur.close()
     conn.close()
 
-    return redirect("/listar")
+    return redirect("/listar", code=303)
 
 @app.route("/custos", methods=["GET"])
 def listar_custos():

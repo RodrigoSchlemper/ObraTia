@@ -110,6 +110,11 @@
 </head>
 <body>
   <h2>Cadastrar Novo Custo</h2>
+  {% if erro %}
+  <div style="background-color: #ffe0e0; color: #a94442; border: 1px solid #f5c6cb; padding: 10px; border-radius: 5px; margin-bottom: 20px; max-width: 700px; margin: 20px auto;">
+    {{ erro }}
+  </div>
+{% endif %}
   <div class="container">
     <form action="/custos" method="POST" enctype="multipart/form-data">
       <label>Tipo:</label>

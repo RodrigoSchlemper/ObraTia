@@ -21,13 +21,16 @@ def adicionar_custo():
 
     # ⚠️ Validação básica de campos obrigatórios
     if not tipo or not descricao or not valor or not data_compra:
-        return jsonify({"erro": "Preencha todos os campos obrigatórios."}), 400
+    erro = "Preencha todos os campos obrigatórios."
+    return render_template("editar.html", erro=erro)
 
     # ⚠️ Validação do campo numérico
     try:
         valor = float(valor)
     except ValueError:
-        return jsonify({"erro": "O campo 'valor' precisa ser um número válido."}), 400
+        erro = "O campo 'valor' precisa ser um número válido."
+return render_template("editar.html", erro=erro)
+
 
     anexo = request.files.get("anexo")
     nome_arquivo = anexo.filename if anexo else None

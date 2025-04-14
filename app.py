@@ -35,7 +35,7 @@ def adicionar_custo():
     cur.close()
     conn.close()
 
-    return jsonify({"mensagem": "Custo adicionado com anexo!"})
+    return redirect("/listar")
 
 @app.route("/custos", methods=["GET"])
 def listar_custos():
